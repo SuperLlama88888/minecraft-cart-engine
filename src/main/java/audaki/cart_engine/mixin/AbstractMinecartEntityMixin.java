@@ -14,6 +14,7 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.entity.vehicle.AbstractMinecart.Type;
+import net.minecraft.entity.vehicle.AbstractMinecartEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.Blocks;
@@ -104,7 +105,7 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
             }
 
             // We only change logic when the minecart is currently being ridden by a living entity (player/villager/mob)
-            boolean hasLivingRider = this.getFirstPassenger() instanceof LivingEntity;
+            boolean hasLivingRider = this.hasLivingEntityInConnection();
             if (!hasLivingRider) {
                 return;
             }
@@ -112,6 +113,46 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
 
         this.modifiedMoveAlongTrack(pos, state);
         ci.cancel();
+    }
+    protected boolean hasLivingEntityInConnection() {
+        if(this.getFirstPassenger() instanceof LivingEntity) {
+            return true;
+        }
+        AbstractMinecartEntity following = this.linkart$getFollowing();
+        while(following != null) {
+            if(following.getFirstPassenger() instanceof LivingEntity) {
+                return true;
+            }
+            following = following.linkart$getFollowing();
+        }
+        AbstractMinecartEntity follower = this.linkart$getFollower();
+        while(follower != null) {
+            if(follower.getFirstPassenger() instanceof LivingEntity) {
+                return true;
+            }
+            follower = follower.linkart$getFollower();
+        }
+        return false;
+    }
+    protected Player playerInConnection() {
+        if(this.getFirstPassenger() instanceof Player) {
+            return this.getFirstPassenger();
+        }
+        AbstractMinecartEntity following = this.linkart$getFollowing();
+        while(following != null) {
+            if(following.getFirstPassenger() instanceof Player) {
+                return following.getFirstPassenger();
+            }
+            following = following.linkart$getFollowing();
+        }
+        AbstractMinecartEntity follower = this.linkart$getFollower();
+        while(follower != null) {
+            if(follower.getFirstPassenger() instanceof Player) {
+                return follower.getFirstPassenger();
+            }
+            follower = follower.linkart$getFollower();
+        }
+        return null;
     }
 
     protected void modifiedMoveAlongTrack(BlockPos startPos, BlockState state) {
@@ -354,8 +395,8 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
             maxSpeedForThisTick = Math.min(maxSpeedForThisTick, 0.7071 * maxSpeed);
         }
 
-        Entity entity = this.getFirstPassenger();
-        if (entity instanceof Player) {
+        Player entity = this.playerInConnection();
+        if (entity != null) {
             Vec3 playerDeltaMovement = entity.getDeltaMovement();
             double m = playerDeltaMovement.horizontalDistanceSqr();
             double n = this.getDeltaMovement().horizontalDistanceSqr();
