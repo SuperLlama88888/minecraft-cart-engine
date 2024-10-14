@@ -1,7 +1,7 @@
 package audaki.cart_engine;
 
 import net.fabricmc.api.ModInitializer;
-import net.minecraft.entity.vehicle.AbstractMinecart;
+import net.minecraft.world.entity.vehicle.AbstractMinecart;
 
 import java.util.ArrayList;
 import java.util.List;
