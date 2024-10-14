@@ -104,7 +104,7 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
             }
 
             // We only change logic when the minecart is currently being ridden by a living entity (player/villager/mob)
-            boolean hasLivingRider = this.hasLivingEntityInConnection();
+            boolean hasLivingRider = true || this.hasLivingEntityInConnection();
             if (!hasLivingRider) {
                 return;
             }
@@ -117,40 +117,40 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
         if(this.getFirstPassenger() instanceof LivingEntity) {
             return true;
         }
-        AbstractMinecart following = this.linkart$getFollowing();
-        while(following != null) {
-            if(following.getFirstPassenger() instanceof LivingEntity) {
-                return true;
-            }
-            following = following.linkart$getFollowing();
-        }
-        AbstractMinecart follower = this.linkart$getFollower();
-        while(follower != null) {
-            if(follower.getFirstPassenger() instanceof LivingEntity) {
-                return true;
-            }
-            follower = follower.linkart$getFollower();
-        }
+        // AbstractMinecart following = this.linkart$getFollowing();
+        // while(following != null) {
+        //     if(following.getFirstPassenger() instanceof LivingEntity) {
+        //         return true;
+        //     }
+        //     following = following.linkart$getFollowing();
+        // }
+        // AbstractMinecart follower = this.linkart$getFollower();
+        // while(follower != null) {
+        //     if(follower.getFirstPassenger() instanceof LivingEntity) {
+        //         return true;
+        //     }
+        //     follower = follower.linkart$getFollower();
+        // }
         return false;
     }
     protected Player playerInConnection() {
         if(this.getFirstPassenger() instanceof Player) {
             return this.getFirstPassenger();
         }
-        AbstractMinecart following = this.linkart$getFollowing();
-        while(following != null) {
-            if(following.getFirstPassenger() instanceof Player) {
-                return following.getFirstPassenger();
-            }
-            following = following.linkart$getFollowing();
-        }
-        AbstractMinecart follower = this.linkart$getFollower();
-        while(follower != null) {
-            if(follower.getFirstPassenger() instanceof Player) {
-                return follower.getFirstPassenger();
-            }
-            follower = follower.linkart$getFollower();
-        }
+        // AbstractMinecart following = this.linkart$getFollowing();
+        // while(following != null) {
+        //     if(following.getFirstPassenger() instanceof Player) {
+        //         return following.getFirstPassenger();
+        //     }
+        //     following = following.linkart$getFollowing();
+        // }
+        // AbstractMinecart follower = this.linkart$getFollower();
+        // while(follower != null) {
+        //     if(follower.getFirstPassenger() instanceof Player) {
+        //         return follower.getFirstPassenger();
+        //     }
+        //     follower = follower.linkart$getFollower();
+        // }
         return null;
     }
 
