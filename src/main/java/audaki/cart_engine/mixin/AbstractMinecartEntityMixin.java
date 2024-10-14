@@ -1,5 +1,6 @@
 package audaki.cart_engine.mixin;
 
+import audaki.cart_engine.AudakiCartEngine;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 /*
@@ -79,16 +81,33 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
 
     @Inject(at = @At("HEAD"), method = "moveAlongTrack", cancellable = true)
     protected void moveAlongTrackOverwrite(BlockPos pos, BlockState state, CallbackInfo ci) {
-
-        // We only change logic for rideable minecarts, so we don't break hopper/chest minecart creations
-        if (this.getMinecartType() != Type.RIDEABLE) {
+ // Loop through checks registered by other mods
+        Boolean shouldUseModifiedEngine = null;
+        for (Function<AbstractMinecartEntity, Boolean> cartChecker : AudakiCartEngine.CART_CHECK_MODIFIED_ENGINE) {
+            shouldUseModifiedEngine = cartChecker.apply((AbstractMinecartEntity) (Object) this);
+            // Check if the modified engine is required/suppressed
+            if (shouldUseModifiedEngine != null) {
+                break;
+            }
+        }
+        // Check if modified engine was suppressed
+        if (!shouldUseModifiedEngine) {
             return;
         }
 
-        // We only change logic when the minecart is currently being ridden by a living entity (player/villager/mob)
-        boolean hasLivingRider = this.getFirstPassenger() instanceof LivingEntity;
-        if (!hasLivingRider) {
-            return;
+        // If no mods required modified engine, we do our own logic here
+        if (shouldUseModifiedEngine == null) {
+
+            // We only change logic for rideable minecarts so we don't break hopper/chest minecart creations
+            if (this.getMinecartType() != Type.RIDEABLE) {
+                return;
+            }
+
+            // We only change logic when the minecart is currently being ridden by a living entity (player/villager/mob)
+            boolean hasLivingRider = this.getFirstPassenger() instanceof LivingEntity;
+            if (!hasLivingRider) {
+                return;
+            }
         }
 
         this.modifiedMoveAlongTrack(pos, state);
@@ -234,8 +253,8 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
 
             double fallback = this.getMaxSpeed();
 
-            if (!this.isVehicle())
-                return fallback;
+            // if (!this.isVehicle())
+            //     return fallback;
 
             if (this.getDeltaMovement().horizontalDistance() < vanillaMaxSpeed)
                 return fallback;
@@ -400,7 +419,7 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
         thisX = p + exitDiffX * x;
         thisZ = q + exitDiffZ * x;
 
-        v = this.isVehicle() ? 0.75D : 1.0D;
+        v = 1.0D;
         w = maxSpeedForThisTick;
         momentum = this.getDeltaMovement();
         // The clamp here differentiates between momentum and actual allowed speed in this tick
@@ -483,34 +502,28 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
             final double basisAccelerationPerTick = 0.021D;
             if (horizontalMomentum > 0.01D) {
 
-                if (this.isVehicle()) {
-                    // TODO: Rewrite the comment/naming so it makes more sense (very confusing since TPS is 20 and we can only skip 1 block with current speeds)
+                // TODO: Rewrite the comment/naming so it makes more sense (very confusing since TPS is 20 and we can only skip 1 block with current speeds)
 
-                    // Based on a 10 ticks per second basis spent per powered block we calculate a fair acceleration per tick
-                    // due to spending less ticks per powered block on higher speeds (and even skipping blocks)
-                    final double basisTicksPerSecond = 10.0D;
-                    // Tps = Ticks per second
-                    final double tickMovementForBasisTps = 1.0D / basisTicksPerSecond;
-                    final double maxSkippedBlocksToConsider = 3.0D;
+                // Based on a 10 ticks per second basis spent per powered block we calculate a fair acceleration per tick
+                // due to spending less ticks per powered block on higher speeds (and even skipping blocks)
+                final double basisTicksPerSecond = 10.0D;
+                // Tps = Ticks per second
+                final double tickMovementForBasisTps = 1.0D / basisTicksPerSecond;
+                final double maxSkippedBlocksToConsider = 3.0D;
 
 
-                    double acceleration = basisAccelerationPerTick;
-                    final double distanceMovedHorizontally = movement.horizontalDistance();
+                double acceleration = basisAccelerationPerTick;
+                final double distanceMovedHorizontally = movement.horizontalDistance();
 
-                    if (distanceMovedHorizontally > tickMovementForBasisTps) {
-                        acceleration *= Math.min((1.0D + maxSkippedBlocksToConsider) * basisTicksPerSecond, distanceMovedHorizontally / tickMovementForBasisTps);
+                if (distanceMovedHorizontally > tickMovementForBasisTps) {
+                    acceleration *= Math.min((1.0D + maxSkippedBlocksToConsider) * basisTicksPerSecond, distanceMovedHorizontally / tickMovementForBasisTps);
 
-                        // Add progressively slower (or faster) acceleration for higher speeds;
-                        double highspeedFactor = 1.0D + Mth.clamp(-0.45D * (distanceMovedHorizontally / tickMovementForBasisTps / basisTicksPerSecond), -0.7D, 2.0D);
-                        acceleration *= highspeedFactor;
-                    }
-                    this.setDeltaMovement(momentum.add(acceleration * (momentum.x / horizontalMomentum), 0.0D, acceleration * (momentum.z / horizontalMomentum)));
+                    // Add progressively slower (or faster) acceleration for higher speeds;
+                    double highspeedFactor = 1.0D + Mth.clamp(-0.45D * (distanceMovedHorizontally / tickMovementForBasisTps / basisTicksPerSecond), -0.7D, 2.0D);
+                    acceleration *= highspeedFactor;
                 }
-                else {
-                    this.setDeltaMovement(momentum.add(momentum.x / horizontalMomentum * 0.06D, 0.0D, momentum.z / horizontalMomentum * 0.06D));
-                }
-
-
+                this.setDeltaMovement(momentum.add(acceleration * (momentum.x / horizontalMomentum), 0.0D, acceleration * (momentum.z / horizontalMomentum)));
+                
             } else {
                 momentum = this.getDeltaMovement();
                 double ah = momentum.x;
