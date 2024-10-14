@@ -14,7 +14,6 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.AbstractMinecart;
 import net.minecraft.world.entity.vehicle.AbstractMinecart.Type;
-import net.minecraft.entity.vehicle.AbstractMinecartEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseRailBlock;
 import net.minecraft.world.level.block.Blocks;
@@ -118,14 +117,14 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
         if(this.getFirstPassenger() instanceof LivingEntity) {
             return true;
         }
-        AbstractMinecartEntity following = this.linkart$getFollowing();
+        AbstractMinecart following = this.linkart$getFollowing();
         while(following != null) {
             if(following.getFirstPassenger() instanceof LivingEntity) {
                 return true;
             }
             following = following.linkart$getFollowing();
         }
-        AbstractMinecartEntity follower = this.linkart$getFollower();
+        AbstractMinecart follower = this.linkart$getFollower();
         while(follower != null) {
             if(follower.getFirstPassenger() instanceof LivingEntity) {
                 return true;
@@ -138,14 +137,14 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
         if(this.getFirstPassenger() instanceof Player) {
             return this.getFirstPassenger();
         }
-        AbstractMinecartEntity following = this.linkart$getFollowing();
+        AbstractMinecart following = this.linkart$getFollowing();
         while(following != null) {
             if(following.getFirstPassenger() instanceof Player) {
                 return following.getFirstPassenger();
             }
             following = following.linkart$getFollowing();
         }
-        AbstractMinecartEntity follower = this.linkart$getFollower();
+        AbstractMinecart follower = this.linkart$getFollower();
         while(follower != null) {
             if(follower.getFirstPassenger() instanceof Player) {
                 return follower.getFirstPassenger();
