@@ -135,19 +135,19 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
     }
     protected Player playerInConnection() {
         if(this.getFirstPassenger() instanceof Player) {
-            return this.getFirstPassenger();
+            return (Player)this.getFirstPassenger();
         }
         // AbstractMinecart following = this.linkart$getFollowing();
         // while(following != null) {
         //     if(following.getFirstPassenger() instanceof Player) {
-        //         return following.getFirstPassenger();
+        //         return (Player)following.getFirstPassenger();
         //     }
         //     following = following.linkart$getFollowing();
         // }
         // AbstractMinecart follower = this.linkart$getFollower();
         // while(follower != null) {
         //     if(follower.getFirstPassenger() instanceof Player) {
-        //         return follower.getFirstPassenger();
+        //         return (Player)follower.getFirstPassenger();
         //     }
         //     follower = follower.linkart$getFollower();
         // }
