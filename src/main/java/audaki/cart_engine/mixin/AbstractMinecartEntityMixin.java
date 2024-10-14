@@ -91,7 +91,7 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
             }
         }
         // Check if modified engine was suppressed
-        if (!shouldUseModifiedEngine) {
+        if (shouldUseModifiedEngine != null && !shouldUseModifiedEngine) {
             return;
         }
 
