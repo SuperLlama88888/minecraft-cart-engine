@@ -83,8 +83,8 @@ public abstract class AbstractMinecartEntityMixin extends Entity {
     protected void moveAlongTrackOverwrite(BlockPos pos, BlockState state, CallbackInfo ci) {
  // Loop through checks registered by other mods
         Boolean shouldUseModifiedEngine = null;
-        for (Function<AbstractMinecartEntity, Boolean> cartChecker : AudakiCartEngine.CART_CHECK_MODIFIED_ENGINE) {
-            shouldUseModifiedEngine = cartChecker.apply((AbstractMinecartEntity) (Object) this);
+        for (Function<AbstractMinecart, Boolean> cartChecker : AudakiCartEngine.CART_CHECK_MODIFIED_ENGINE) {
+            shouldUseModifiedEngine = cartChecker.apply((AbstractMinecart) (Object) this);
             // Check if the modified engine is required/suppressed
             if (shouldUseModifiedEngine != null) {
                 break;
